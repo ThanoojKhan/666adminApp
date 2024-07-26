@@ -12,6 +12,10 @@ export default defineConfig({
         short_name: 'PWA App',
         description: 'Enquiries for 666',
         theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: '/pic5.jpg',
@@ -30,6 +34,9 @@ export default defineConfig({
             purpose: 'any maskable',
           },
         ],
+      },
+      devOptions: {
+        enabled: true,
       },
     }),
   ],
