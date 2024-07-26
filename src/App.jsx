@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, orderBy, limit, startAfter, query } from 'firebase/firestore';
-import { db } from './firebaseConfig';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, orderBy, limit, startAfter, query } from 'firebase/firestore';
 
+// Firebase configuration object
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -13,10 +12,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-const enquiriesCollection = collection(db, 'enquiries');
 
 const App = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -24,7 +23,6 @@ const App = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [limitPerPage] = useState(15);
   const [lastVisible, setLastVisible] = useState(null);
-  const [firstVisible, setFirstVisible] = useState(null);
 
   const fetchEnquiries = async (page) => {
     const enquiriesRef = collection(db, 'enquiries');
@@ -32,16 +30,23 @@ const App = () => {
 
     if (page === 1) {
       q = query(enquiriesRef, orderBy('createdAt', 'desc'), limit(limitPerPage));
-    } else if (page > currentPage) {
-      q = query(enquiriesRef, orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(limitPerPage));
     } else {
-      q = query(enquiriesRef, orderBy('createdAt', 'desc'), limit(limitPerPage), startAfter(firstVisible));
+      q = query(enquiriesRef, orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(limitPerPage));
     }
 
     const snapshot = await getDocs(q);
-    setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-    setFirstVisible(snapshot.docs[0]);
-    setEnquiries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+    if (snapshot.docs.length > 0) {
+      setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+    }
+
+    const fetchedEnquiries = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt.toDate().toDateString()
+    }));
+
+    setEnquiries(page === 1 ? fetchedEnquiries : enquiries.concat(fetchedEnquiries));
 
     const totalDocsSnapshot = await getDocs(enquiriesRef);
     setTotalPages(Math.ceil(totalDocsSnapshot.size / limitPerPage));
@@ -86,7 +91,7 @@ const App = () => {
               <td className="border px-4 py-2">{enquiry.servicesRequired.join(', ')}</td>
               <td className="border px-4 py-2">{enquiry.phoneNumber}</td>
               <td className="border px-4 py-2">{enquiry.location}</td>
-              <td className="border px-4 py-2">{enquiry.createdAt.toDate().toDateString()}</td>
+              <td className="border px-4 py-2">{enquiry.createdAt}</td>
             </tr>
           ))}
         </tbody>
