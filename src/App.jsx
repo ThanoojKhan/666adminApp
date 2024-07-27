@@ -43,8 +43,9 @@ const App = () => {
     const fetchedEnquiries = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      createdAt: doc.data().createdAt.toDate().toDateString()
+      createdAt: doc.data().createdAt.toDate().toLocaleString()
     }));
+
 
     setEnquiries(page === 1 ? fetchedEnquiries : enquiries.concat(fetchedEnquiries));
 
@@ -115,7 +116,7 @@ const App = () => {
             <th className="border px-4 py-2">Service Required</th>
             <th className="border px-4 py-2">Phone Number</th>
             <th className="border px-4 py-2">Location</th>
-            <th className="border px-4 py-2">Date</th>
+            <th className="border px-4 py-2">Date & Time</th>
             <th className="border px-4 py-2">Actions</th>
           </tr>
         </thead>
